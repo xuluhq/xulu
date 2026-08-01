@@ -20,21 +20,23 @@ Linux x86_64 only for now.
 ### Quick install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash && . ~/.local/share/xulu/env.sh && hash -r
 ```
 
-This downloads the latest release binary into `~/.local/bin/xulu` (no sudo).
+This downloads the latest release binary into `~/.local/bin/xulu` (no sudo), then
+loads PATH in **your current shell** via `~/.local/share/xulu/env.sh`.
 
-The script then checks your **shell config** (`~/.bashrc` or `~/.zshrc`), not only the
-current session `PATH`. On Ubuntu, `~/.local/bin` may already work in login shells
-via `~/.profile`, while new terminal tabs often only load `~/.bashrc` — so the
-installer asks whether to add a PATH line there (`y`/`N`), or prints the manual
-command.
+(`curl | bash` alone cannot change the parent shell’s environment; the trailing
+`. ~/.local/share/xulu/env.sh` is what makes `xulu` work immediately.)
+
+The script also offers to add PATH to `~/.bashrc` / `~/.zshrc` so **new** terminals
+work. On Ubuntu, `~/.local/bin` may already appear via `~/.profile` in login shells,
+while many terminal tabs only load `~/.bashrc`.
 
 Pin a version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.1.0 bash
+curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.1.0 bash && . ~/.local/share/xulu/env.sh && hash -r
 ```
 
 ### Manual install
