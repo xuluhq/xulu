@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Install the Xulu CLI (Linux x86_64) from GitHub Releases.
 #
-# Same terminal + new terminals (bash or zsh):
-#   curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash && . ~/.local/share/xulu/env.sh
+#   curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
+#
+# Then either:
+#   source ~/.local/share/xulu/env.sh
+# or open a new terminal (if you answered y to the PATH prompt).
 #
 # Optional:
 #   XULU_VERSION=v0.1.0 …     # pin a release tag
 #   INSTALL_DIR=~/.local/bin … # custom install dir
 #
 # `curl | bash` runs in a child process and cannot change your interactive shell's
-# PATH. Source ~/.local/share/xulu/env.sh (or open a new terminal after answering y)
-# so xulu is available immediately.
+# PATH. That is why activation happens after install (source env.sh or a new terminal).
 
 set -euo pipefail
 
@@ -32,19 +34,15 @@ _out() {
   fi
 }
 
-if [[ -r /dev/tty && -t 1 ]] || [[ -r /dev/tty ]]; then
-  if [[ -t 1 ]] || [[ -r /dev/tty ]]; then
-    BOLD=$'\033[1m'
-    DIM=$'\033[2m'
-    GREEN=$'\033[32m'
-    YELLOW=$'\033[33m'
-    CYAN=$'\033[36m'
-    RESET=$'\033[0m'
-  fi
+if [[ -r /dev/tty ]]; then
+  BOLD=$'\033[1m'
+  DIM=$'\033[2m'
+  YELLOW=$'\033[33m'
+  CYAN=$'\033[36m'
+  RESET=$'\033[0m'
 fi
 BOLD="${BOLD:-}"
 DIM="${DIM:-}"
-GREEN="${GREEN:-}"
 YELLOW="${YELLOW:-}"
 CYAN="${CYAN:-}"
 RESET="${RESET:-}"
@@ -108,7 +106,7 @@ append_path_to_rc() {
   local rc="$1"
   touch "${rc}"
   if rc_has_install_dir "${rc}"; then
-    _out '%s✓%s PATH entry already present in %s\n' "${GREEN}" "${RESET}" "${rc}"
+    _out '  PATH entry already present in %s\n' "${rc}"
     return 0
   fi
   {
@@ -116,7 +114,7 @@ append_path_to_rc() {
     echo "# Xulu CLI"
     echo "${PATH_LINE}"
   } >> "${rc}"
-  _out '%s✓%s Added PATH export to %s\n' "${GREEN}" "${RESET}" "${rc}"
+  _out '  Added PATH export to %s\n' "${rc}"
 }
 
 print_box() {
@@ -147,13 +145,13 @@ print_activate_next_steps() {
     "  1)  source ~/.local/share/xulu/env.sh" \
     "  2)  open a new terminal" \
     "" \
-    "Then run:  xulu --help"
+    "Then:  xulu --help"
 }
 
 print_manual_path_help() {
   local rc
   rc="$(default_rc_file)"
-  _out '\n%sNote%s  Skipped editing %s.\n' "${YELLOW}${BOLD}" "${RESET}" "${rc}"
+  _out '\nNote  Skipped editing %s.\n' "${rc}"
   _out '\n  Add this line to %s, then open a new terminal:\n\n' "${rc}"
   _out '    %s\n\n' "${PATH_LINE}"
   _out '  Or only for this terminal:\n\n'
@@ -169,7 +167,7 @@ maybe_configure_path() {
   _out '\n'
 
   if rc_has_install_dir "${rc}"; then
-    _out '%s✓%s PATH for %s is already configured in %s\n' "${GREEN}" "${RESET}" "${INSTALL_DIR}" "${rc}"
+    _out 'PATH for %s is already configured in %s\n' "${INSTALL_DIR}" "${rc}"
     if path_contains_install_dir; then
       _out '  %sAlso available on PATH in this shell.%s\n' "${DIM}" "${RESET}"
     else
@@ -179,10 +177,10 @@ maybe_configure_path() {
   fi
 
   if path_contains_install_dir; then
-    _out '%s!%s %s is on PATH in this shell (often via ~/.profile),\n' "${YELLOW}" "${RESET}" "${INSTALL_DIR}"
+    _out '%sNote%s  %s is on PATH in this shell (often via ~/.profile),\n' "${YELLOW}${BOLD}" "${RESET}" "${INSTALL_DIR}"
     _out '  but new terminals may only load %s and then miss xulu.\n' "${rc}"
   else
-    _out '%s!%s Xulu is installed but %s is not on your PATH.\n' "${YELLOW}" "${RESET}" "${INSTALL_DIR}"
+    _out '%sNote%s  Xulu is installed but %s is not on your PATH.\n' "${YELLOW}${BOLD}" "${RESET}" "${INSTALL_DIR}"
   fi
   _out '\n'
 
@@ -231,19 +229,7 @@ chmod +x "${tmpdir}/${ASSET}"
 mkdir -p "${INSTALL_DIR}"
 mv "${tmpdir}/${ASSET}" "${INSTALL_DIR}/xulu"
 
-_out '%s✓%s Installed %s\n' "${GREEN}" "${RESET}" "${INSTALL_DIR}/xulu"
+_out 'Installed %s\n' "${INSTALL_DIR}/xulu"
 
 maybe_configure_path
-
-# Smoke-test inside this child process only (does not affect the parent shell).
-export PATH="${INSTALL_DIR}:${PATH}"
-_out '\n%s── Check%s\n' "${BOLD}" "${RESET}"
-if command -v xulu >/dev/null 2>&1; then
-  _out '%s✓%s Binary runs:\n\n' "${GREEN}" "${RESET}"
-  xulu --help | head -n 5 | while IFS= read -r line; do
-    _out '    %s\n' "${line}"
-  done
-  _out '\n'
-fi
-
 print_activate_next_steps

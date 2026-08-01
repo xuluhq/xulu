@@ -20,24 +20,29 @@ Linux x86_64 only for now.
 ### Quick install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash && . ~/.local/share/xulu/env.sh
+curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
 ```
 
 Works the same for **bash** and **zsh**.
 
 - Installs into `~/.local/bin/xulu` (no sudo)
 - Offers to update `~/.bashrc` or `~/.zshrc` (from `$SHELL`) for new terminals
-- The trailing `. ~/.local/share/xulu/env.sh` activates PATH **in this terminal**
 
-`curl | bash` alone cannot change your current shell’s environment. After install you can either:
+`curl | bash` cannot change your current shell’s PATH. After install, do **one** of:
 
 1. `source ~/.local/share/xulu/env.sh`, or  
 2. open a new terminal (if you answered `y` to the PATH prompt)
 
+Then:
+
+```bash
+xulu --help
+```
+
 Pin a version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.1.0 bash && . ~/.local/share/xulu/env.sh
+curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.1.0 bash
 ```
 
 ### Manual install
