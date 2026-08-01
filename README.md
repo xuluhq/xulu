@@ -20,17 +20,17 @@ Linux x86_64 only for now.
 ### Quick install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
 ```
 
 This downloads the latest release binary into `~/.local/bin/xulu` (no sudo).
 
-If `xulu` is not found afterward, add `~/.local/bin` to your `PATH` (see below).
+If that directory is not on your `PATH`, the script asks whether to add it to your shell config (`y`/`N`), or prints the manual `export PATH=…` line.
 
 Pin a version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/main/install.sh | XULU_VERSION=v0.1.0 bash
+curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.1.0 bash
 ```
 
 ### Manual install
