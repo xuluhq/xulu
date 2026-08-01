@@ -25,7 +25,11 @@ curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bas
 
 This downloads the latest release binary into `~/.local/bin/xulu` (no sudo).
 
-If that directory is not on your `PATH`, the script asks whether to add it to your shell config (`y`/`N`), or prints the manual `export PATH=…` line.
+The script then checks your **shell config** (`~/.bashrc` or `~/.zshrc`), not only the
+current session `PATH`. On Ubuntu, `~/.local/bin` may already work in login shells
+via `~/.profile`, while new terminal tabs often only load `~/.bashrc` — so the
+installer asks whether to add a PATH line there (`y`/`N`), or prints the manual
+command.
 
 Pin a version:
 
@@ -45,11 +49,14 @@ mkdir -p ~/.local/bin
 mv xulu-linux-x86_64 ~/.local/bin/xulu
 ```
 
-3. If `xulu` is not found, add this to `~/.bashrc` or `~/.zshrc`, then open a new terminal:
+3. If `xulu` is not found in a **new** terminal, add this to `~/.bashrc` (bash) or
+   `~/.zshrc` (zsh) — not only `~/.profile`:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
+
+Then open a new terminal (or `source ~/.bashrc`).
 
 4. Check:
 

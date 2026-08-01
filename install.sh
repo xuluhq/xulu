@@ -64,34 +64,61 @@ print_manual_path_help() {
   echo
   echo "  ${PATH_LINE}"
   echo
+  echo "Note: on Ubuntu/Debian, ~/.profile may already add ~/.local/bin for login shells,"
+  echo "but many terminals only load ~/.bashrc — so put the line there for reliability."
+  echo
+}
+
+rc_has_install_dir() {
+  local rc="$1"
+  [[ -f "${rc}" ]] && grep -Fq "${INSTALL_DIR}" "${rc}"
+}
+
+append_path_to_rc() {
+  local rc="$1"
+  touch "${rc}"
+  if rc_has_install_dir "${rc}"; then
+    echo "PATH entry for ${INSTALL_DIR} already present in ${rc}."
+    return 0
+  fi
+  {
+    echo ""
+    echo "# Xulu CLI"
+    echo "${PATH_LINE}"
+  } >> "${rc}"
+  echo "Added PATH export to ${rc}."
+  echo "Open a new terminal (or run: source ${rc}) before using xulu."
 }
 
 maybe_configure_path() {
-  if path_contains_install_dir; then
-    echo
-    echo "${INSTALL_DIR} is already on your PATH."
+  local rc
+  rc="$(default_rc_file)"
+
+  echo
+
+  # Persist in the interactive shell rc (bashrc/zshrc). Checking only the current
+  # PATH is not enough: login shells often get ~/.local/bin from ~/.profile, while
+  # new terminal tabs typically only source ~/.bashrc and then miss xulu.
+  if rc_has_install_dir "${rc}"; then
+    echo "PATH for ${INSTALL_DIR} is already configured in ${rc}."
+    if path_contains_install_dir; then
+      echo "${INSTALL_DIR} is also on PATH in this shell."
+    else
+      echo "It is not on PATH in this shell yet — run: source ${rc}"
+    fi
     return 0
   fi
 
-  echo
-  echo "Xulu is installed but ${INSTALL_DIR} is not on your PATH."
+  if path_contains_install_dir; then
+    echo "${INSTALL_DIR} is on PATH in this shell (often via ~/.profile),"
+    echo "but new terminals may only load ${rc} and then miss xulu."
+  else
+    echo "Xulu is installed but ${INSTALL_DIR} is not on your PATH."
+  fi
   echo
 
-  if ask_yes_no "Add ${INSTALL_DIR} to PATH in $(default_rc_file)? [y/N] "; then
-    local rc
-    rc="$(default_rc_file)"
-    touch "${rc}"
-    if grep -Fq "${INSTALL_DIR}" "${rc}" 2>/dev/null; then
-      echo "PATH entry for ${INSTALL_DIR} already present in ${rc}."
-    else
-      {
-        echo ""
-        echo "# Xulu CLI"
-        echo "${PATH_LINE}"
-      } >> "${rc}"
-      echo "Added PATH export to ${rc}."
-      echo "Open a new terminal (or run: source ${rc}) before using xulu."
-    fi
+  if ask_yes_no "Add ${INSTALL_DIR} to PATH in ${rc}? [y/N] "; then
+    append_path_to_rc "${rc}"
   else
     echo "Skipped automatic PATH update."
     print_manual_path_help
