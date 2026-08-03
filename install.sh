@@ -213,15 +213,34 @@ _out '\n%s── Xulu installer%s  (Linux x86_64 · bash & zsh)\n\n' "${BOLD}" "
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "${tmpdir}"' EXIT
 
+resolve_latest_tag() {
+  # Prefer the release API so we can print the exact version being installed.
+  local json
+  if ! json="$(curl -fsSL \
+    -H "Accept: application/vnd.github+json" \
+    -H "User-Agent: xulu-install" \
+    "https://api.github.com/repos/${REPO}/releases/latest")"; then
+    echo "error: could not resolve latest release for ${REPO}" >&2
+    exit 1
+  fi
+  local tag
+  tag="$(printf '%s' "${json}" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+  if [[ -z "${tag}" ]]; then
+    echo "error: could not parse tag_name from GitHub latest release response" >&2
+    exit 1
+  fi
+  printf '%s\n' "${tag}"
+}
+
 if [[ -n "${VERSION}" ]]; then
   tag="${VERSION}"
   [[ "${tag}" == v* ]] || tag="v${tag}"
-  url="https://github.com/${REPO}/releases/download/${tag}/${ASSET}"
-  _out 'Downloading Xulu %s (%s)...\n' "${tag}" "${ASSET}"
 else
-  url="https://github.com/${REPO}/releases/latest/download/${ASSET}"
-  _out 'Downloading latest Xulu (%s)...\n' "${ASSET}"
+  tag="$(resolve_latest_tag)"
 fi
+
+url="https://github.com/${REPO}/releases/download/${tag}/${ASSET}"
+_out 'Installing Xulu %s (%s)...\n' "${tag}" "${ASSET}"
 
 curl -fsSL "${url}" -o "${tmpdir}/${ASSET}"
 
@@ -246,9 +265,14 @@ mkdir -p "${INSTALL_DIR}"
 mv "${tmpdir}/${ASSET}" "${INSTALL_DIR}/xulu"
 
 _out 'Installed %s\n' "${INSTALL_DIR}/xulu"
+_out 'Release:   %s\n' "${tag}"
+if reported="$("${INSTALL_DIR}/xulu" --version 2>/dev/null)"; then
+  _out 'Binary:    %s\n' "${reported}"
+fi
 
 maybe_configure_path
 print_activate_next_steps
 
 _out 'Later updates:  xulu update\n'
-_out 'Check only:     xulu update --check\n\n'
+_out 'Check only:     xulu update --check\n'
+_out 'Show version:   xulu -v\n\n'

@@ -79,13 +79,14 @@ Then open a new terminal (or `source ~/.bashrc` / `source ~/.zshrc`).
 
 ```bash
 xulu --help
-xulu --version
+xulu -v
 ```
 
 ## Usage
 
 ```bash
 xulu --help
+xulu -v                 # or: xulu --version
 xulu inspect path/to/file.parquet
 xulu inspect path/to/file.parquet --detailed
 xulu inspect path/to/file.parquet --detailed --format json
@@ -95,14 +96,14 @@ xulu inspect path/to/file.parquet --detailed --format json
 
 ## Updating
 
-If `xulu` lives in a user-writable location (the default `~/.local/bin`), update in place:
+If `xulu` lives in a user-writable location (the default `~/.local/bin` from `install.sh`), update in place:
 
 ```bash
 xulu update          # download and install the latest release
 xulu update --check  # only report whether an update is available
 ```
 
-`update` verifies the published SHA-256 checksum before replacing the binary. It does not use sudo. If the binary is in a system path (for example `/usr/local/bin`), reinstall with `install.sh` into `~/.local/bin` instead.
+`update` verifies the published SHA-256 checksum before replacing the binary. It does not use sudo. Manual installs should also use `~/.local/bin` so `xulu update` can replace the binary without elevated permissions. If the binary is in a system path (for example `/usr/local/bin`), reinstall with `install.sh` into `~/.local/bin` instead.
 
 ## Roadmap
 
