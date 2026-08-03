@@ -224,6 +224,22 @@ else
 fi
 
 curl -fsSL "${url}" -o "${tmpdir}/${ASSET}"
+
+# Verify checksum when the companion .sha256 asset is available.
+sum_url="${url}.sha256"
+if curl -fsSL "${sum_url}" -o "${tmpdir}/${ASSET}.sha256"; then
+  (
+    cd "${tmpdir}"
+    if command -v sha256sum >/dev/null 2>&1; then
+      sha256sum -c "${ASSET}.sha256"
+    else
+      echo "warning: sha256sum not found; skipped checksum verification" >&2
+    fi
+  )
+else
+  echo "warning: could not download ${ASSET}.sha256; skipped checksum verification" >&2
+fi
+
 chmod +x "${tmpdir}/${ASSET}"
 
 mkdir -p "${INSTALL_DIR}"
@@ -233,3 +249,6 @@ _out 'Installed %s\n' "${INSTALL_DIR}/xulu"
 
 maybe_configure_path
 print_activate_next_steps
+
+_out 'Later updates:  xulu update\n'
+_out 'Check only:     xulu update --check\n\n'

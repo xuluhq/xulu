@@ -47,14 +47,23 @@ curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XUL
 
 ### Manual install
 
-1. Download `xulu-linux-x86_64` from the latest
+Use `~/.local/bin` (same as the script). That directory is user-writable, so later `xulu update` works without sudo.
+
+1. Download `xulu-linux-x86_64` (and optionally `xulu-linux-x86_64.sha256`) from the latest
    [Release](https://github.com/xuluhq/xulu/releases/latest).
-2. Install it onto your `PATH`:
+2. Install onto your `PATH`:
 
 ```bash
 chmod +x xulu-linux-x86_64
 mkdir -p ~/.local/bin
 mv xulu-linux-x86_64 ~/.local/bin/xulu
+```
+
+Optional checksum check (run in the download directory):
+
+```bash
+sha256sum -c xulu-linux-x86_64.sha256
+# then rename/move as above if the file is still named xulu-linux-x86_64
 ```
 
 3. If `xulu` is not found in a **new** terminal, add this to `~/.bashrc` (bash) or
@@ -64,15 +73,14 @@ mv xulu-linux-x86_64 ~/.local/bin/xulu
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Then open a new terminal (or `source ~/.bashrc`).
+Then open a new terminal (or `source ~/.bashrc` / `source ~/.zshrc`).
 
 4. Check:
 
 ```bash
 xulu --help
+xulu --version
 ```
-
-You can optionally verify the download with `xulu-linux-x86_64.sha256` from the same release (`sha256sum -c xulu-linux-x86_64.sha256`).
 
 ## Usage
 
@@ -80,9 +88,21 @@ You can optionally verify the download with `xulu-linux-x86_64.sha256` from the 
 xulu --help
 xulu inspect path/to/file.parquet
 xulu inspect path/to/file.parquet --detailed
+xulu inspect path/to/file.parquet --detailed --format json
 ```
 
 `inspect` reports format, size, schema, and (with `--detailed`) format-specific metadata. It does not print row values.
+
+## Updating
+
+If `xulu` lives in a user-writable location (the default `~/.local/bin`), update in place:
+
+```bash
+xulu update          # download and install the latest release
+xulu update --check  # only report whether an update is available
+```
+
+`update` verifies the published SHA-256 checksum before replacing the binary. It does not use sudo. If the binary is in a system path (for example `/usr/local/bin`), reinstall with `install.sh` into `~/.local/bin` instead.
 
 ## Roadmap
 
