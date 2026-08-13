@@ -11,7 +11,7 @@ Source code is developed privately.
 
 Early preview. The first available command is **inspect** (`xulu inspect`) for understanding structured files. More commands will ship over time.
 
-Today, Parquet is the only supported inspect format.
+**Format recognition** today: Parquet, plus delimited text (CSV, TSV, SSV, PSV). Basic inspect (path, size, timestamps, and friends) still runs for any readable file; unrecognized content is reported as `unknown`.
 
 ## Installation
 
@@ -88,11 +88,14 @@ xulu -v
 xulu --help
 xulu -v                 # or: xulu --version
 xulu inspect path/to/file.parquet
+xulu inspect path/to/file.csv
 xulu inspect path/to/file.parquet --detailed
-xulu inspect path/to/file.parquet --detailed --format json
+xulu inspect path/to/file.csv --detailed --format json
 ```
 
-`inspect` reports format, size, schema, and (with `--detailed`) format-specific metadata. It does not print row values.
+`inspect` always reports file metadata (path, size, timestamps, and so on). It also tries to recognize the format from **file content** (not only the extension). With `--detailed`, supported formats get format-specific metadata (Parquet schema/layout; delimited columns/rows). It does not print row values.
+
+Supported formats for recognition / detailed inspect: **Parquet**; delimited **CSV**, **TSV**, **SSV** (semicolon), **PSV** (pipe). A mismatched or missing extension may produce a warning when a format is detected.
 
 ## Updating
 
@@ -107,5 +110,5 @@ xulu update --check  # only report whether an update is available
 
 ## Roadmap
 
-- More inspect formats
+- More inspect formats and richer delimited details
 - Tools for validation, profiling, file diff, and conversion
