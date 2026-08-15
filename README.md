@@ -1,17 +1,25 @@
 # Xulu
 
-CLI toolkit for data quality on structured files.
+CLI toolkit for inspecting and working with structured data files.
 
-Inspect, validate, profile, compare, and convert datasets from one command: `xulu`.
+Xulu provides fast, content-aware inspection of Parquet, JSON, and delimited text files from the command line. Validation, profiling, diff, and conversion tools are planned.
 
-This repository distributes **documentation and release binaries**.
-Source code is developed privately.
+This repository contains **documentation and release binaries**. Source code is developed privately.
 
 ## Current status
 
-Early preview. The first available command is **inspect** (`xulu inspect`) for understanding structured files. More commands will ship over time.
+Xulu is currently an early preview. The first available command is **`xulu inspect`**, for inspecting the structure and metadata of data files.
 
-**Format recognition** today: Parquet, plus delimited text (CSV, TSV, SSV, PSV). Basic inspect (path, size, timestamps, and friends) still runs for any readable file; unrecognized content is reported as `unknown`.
+Currently recognized formats:
+
+- **Parquet**
+- **JSON** / **JSONL** (NDJSON)
+- **CSV** (comma-separated)
+- **TSV** (tab-separated)
+- **SSV** (semicolon-separated)
+- **PSV** (pipe-separated)
+
+Basic inspection—including path, size, timestamps, and other filesystem metadata—works for any readable file. Content that cannot be confidently recognized is reported as `unknown`.
 
 ## Installation
 
@@ -30,7 +38,7 @@ Works the same for **bash** and **zsh**.
 
 `curl | bash` cannot change your current shell’s PATH. After install, do **one** of:
 
-1. `source ~/.local/share/xulu/env.sh`, or  
+1. `source ~/.local/share/xulu/env.sh`, or
 2. open a new terminal (if you answered `y` to the PATH prompt)
 
 Then:
@@ -50,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XUL
 Use `~/.local/bin` (same as the script). That directory is user-writable, so later `xulu update` works without sudo.
 
 1. Download `xulu-linux-x86_64` (and optionally `xulu-linux-x86_64.sha256`) from the latest
-   [Release](https://github.com/xuluhq/xulu/releases/latest).
+   [GitHub release](https://github.com/xuluhq/xulu/releases/latest).
 2. Install onto your `PATH`:
 
 ```bash
@@ -79,23 +87,29 @@ Then open a new terminal (or `source ~/.bashrc` / `source ~/.zshrc`).
 
 ```bash
 xulu --help
-xulu -v
+xulu --version
 ```
+
+`-v` is also supported.
 
 ## Usage
 
 ```bash
 xulu --help
-xulu -v                 # or: xulu --version
+xulu --version          # or: xulu -v
 xulu inspect path/to/file.parquet
 xulu inspect path/to/file.csv
+xulu inspect path/to/file.json
+xulu inspect path/to/file.jsonl
 xulu inspect path/to/file.parquet --detailed
 xulu inspect path/to/file.csv --detailed --format json
+xulu inspect path/to/file.json --detailed --depth 5 --max-keys 64
+xulu inspect path/to/file.json --detailed --max-keys 0  # all keys within depth
 ```
 
-`inspect` always reports file metadata (path, size, timestamps, and so on). It also tries to recognize the format from **file content** (not only the extension). With `--detailed`, supported formats get format-specific metadata (Parquet schema/layout; delimited columns/rows). It does not print row values.
+`inspect` always reports filesystem metadata (path, size, timestamps, and so on). It also tries to recognize the format from **file content** (not only the extension). With `--detailed`, supported formats get format-specific structural information, such as Parquet schema and layout details, delimited-text row and column information, or a JSON structural summary. It does not print row values.
 
-Supported formats for recognition / detailed inspect: **Parquet**; delimited **CSV**, **TSV**, **SSV** (semicolon), **PSV** (pipe). A mismatched or missing extension may produce a warning when a format is detected.
+Supported formats for recognition and detailed inspection: **Parquet**; **JSON**; **JSONL** (also `.ndjson`); **CSV** (comma-separated), **TSV** (tab-separated), **SSV** (semicolon-separated), and **PSV** (pipe-separated). For JSON structure, `--depth` / `--max-keys` apply (`--max-keys 0` means unlimited keys within the selected depth). A mismatched or missing extension may produce a warning when a format is detected. Content that cannot be confidently recognized is reported as `unknown`.
 
 ## Updating
 
@@ -111,5 +125,5 @@ xulu update --check  # only report whether an update is available
 
 ## Roadmap
 
-- More inspect formats and richer delimited details
-- Tools for validation, profiling, file diff, and conversion
+- More inspect formats and richer delimited-text details
+- Tools for validation, profiling, diff, and conversion
