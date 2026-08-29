@@ -1,29 +1,46 @@
 # Xulu
 
-CLI toolkit for inspecting and working with structured data files.
+**Local CLI for file inspection, file diffing, and (soon) file validation** of structured data — CSV, JSON, JSONL, Parquet, and plain text.
 
-Xulu provides fast, content-aware inspection of Parquet, JSON, and delimited text files from the command line. Validation, profiling, diff, and conversion tools are planned.
+Xulu helps you understand and compare data files **on your machine**: detect formats, inspect schemas and metadata, and diff two datasets with CI-friendly exit codes. No account required for inspect and diff today.
 
-This repository contains **documentation and release binaries**. Source code is developed privately.
+This repository holds **releases, the install script, and documentation links**. Source code is developed privately. The Software is **proprietary** — see [TERMS.md](./TERMS.md) and [LICENSE](./LICENSE).
 
-## Current status
+## What’s available today
 
-Xulu is currently an early preview. The first available command is **`xulu inspect`**, for inspecting the structure and metadata of data files.
+| Command | Purpose |
+|---------|---------|
+| [`xulu inspect`](#inspect--file-inspection) | **File inspection** — format detection, schemas, metadata, and structural summaries |
+| [`xulu diff`](#diff--file-diffing) | **File diffing** — compare two files (CSV, JSON, Parquet, text) with clear reports |
+| `xulu update` | Update the CLI from GitHub Releases (checksum-verified) |
+| `xulu changelog` | Show release notes |
 
-Currently recognized formats:
+**Coming soon:** **file validation** (`validate` and related tooling), more CLI capabilities, a platform for managing reports, and scheduled checks — documented as they ship. Inspect and diff remain free to use today; future editions will be described before anything moves behind a paid tier.
 
-- **Parquet**
-- **JSON** / **JSONL** (NDJSON)
-- **CSV** (comma-separated)
-- **TSV** (tab-separated)
-- **SSV** (semicolon-separated)
-- **PSV** (pipe-separated)
+### Formats
 
-Basic inspection—including path, size, timestamps, and other filesystem metadata—works for any readable file. Content that cannot be confidently recognized is reported as `unknown`.
+- **Parquet** — schema and layout inspection; row-level diff
+- **JSON** / **JSONL** (NDJSON) — structure inspection; structural / record diff
+- **Delimited text** — CSV, TSV, SSV (semicolon), PSV (pipe), and related layouts
+- **Plain text** — line-oriented inspection and diff
+
+Basic filesystem metadata (path, size, timestamps) works for any readable file. Unrecognized content is reported as `unknown`.
+
+## Links
+
+- [GitHub Releases](https://github.com/xuluhq/xulu/releases) — binaries + SHA-256 checksums
+- [Terms of Use](./TERMS.md) — license and liability for the CLI binary
+- Docs and marketing sites will link here once deployed (getting started, command reference, changelog)
 
 ## Installation
 
-Linux x86_64 only for now.
+**Linux x86_64** today. By downloading or using the CLI, you agree to the [Terms of Use](./TERMS.md).
+
+### Other platforms (coming soon)
+
+- Other Linux architectures (e.g. **arm64**)
+- Distro packages (e.g. **Fedora** / RPM-style, and similar for other distributions)
+- **macOS** and **Windows** builds
 
 ### Quick install
 
@@ -31,10 +48,11 @@ Linux x86_64 only for now.
 curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
 ```
 
-Works the same for **bash** and **zsh**.
+Works with **bash** and **zsh**.
 
 - Installs into `~/.local/bin/xulu` (no sudo)
-- Offers to update `~/.bashrc` or `~/.zshrc` (from `$SHELL`) for new terminals
+- Offers to update `~/.bashrc` or `~/.zshrc` for new terminals
+- Verifies the published SHA-256 checksum when available
 
 `curl | bash` cannot change your current shell’s PATH. After install, do **one** of:
 
@@ -44,86 +62,82 @@ Works the same for **bash** and **zsh**.
 Then:
 
 ```bash
+xulu --version   # or: xulu -v
 xulu --help
 ```
 
 Pin a version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.1.0 bash
+curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.2.6 bash
 ```
 
 ### Manual install
 
-Use `~/.local/bin` (same as the script). That directory is user-writable, so later `xulu update` works without sudo.
-
-1. Download `xulu-linux-x86_64` (and optionally `xulu-linux-x86_64.sha256`) from the latest
+1. Download `xulu-linux-x86_64` and `xulu-linux-x86_64.sha256` from the latest
    [GitHub release](https://github.com/xuluhq/xulu/releases/latest).
-2. Install onto your `PATH`:
+2. Verify and install:
 
 ```bash
+sha256sum -c xulu-linux-x86_64.sha256
 chmod +x xulu-linux-x86_64
 mkdir -p ~/.local/bin
 mv xulu-linux-x86_64 ~/.local/bin/xulu
 ```
 
-Optional checksum check (run in the download directory):
-
-```bash
-sha256sum -c xulu-linux-x86_64.sha256
-# then rename/move as above if the file is still named xulu-linux-x86_64
-```
-
-3. If `xulu` is not found in a **new** terminal, add this to `~/.bashrc` (bash) or
-   `~/.zshrc` (zsh) — not only `~/.profile`:
+3. Ensure `~/.local/bin` is on your PATH (e.g. in `~/.bashrc` or `~/.zshrc`):
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Then open a new terminal (or `source ~/.bashrc` / `source ~/.zshrc`).
+Use `~/.local/bin` so later `xulu update` can replace the binary without sudo.
 
-4. Check:
+## Inspect — file inspection
 
-```bash
-xulu --help
-xulu --version
-```
-
-`-v` is also supported.
-
-## Usage
+Detect format and print schema / metadata:
 
 ```bash
-xulu --help
-xulu --version          # or: xulu -v
-xulu inspect path/to/file.parquet
-xulu inspect path/to/file.csv
-xulu inspect path/to/file.json
-xulu inspect path/to/file.jsonl
-xulu inspect path/to/file.parquet --detailed
-xulu inspect path/to/file.csv --detailed --format json
-xulu inspect path/to/file.json --detailed --depth 5 --max-keys 64
-xulu inspect path/to/file.json --detailed --max-keys 0  # all keys within depth
+xulu inspect results.parquet
+xulu inspect export.csv --detailed
+xulu inspect data.json --detailed -r json --pretty
+xulu inspect big.jsonl --detailed -o report.txt
 ```
 
-`inspect` always reports filesystem metadata (path, size, timestamps, and so on). It also tries to recognize the format from **file content** (not only the extension). With `--detailed`, supported formats get format-specific structural information, such as Parquet schema and layout details, delimited-text row and column information, or a JSON structural summary. It does not print row values.
+Useful flags: `--detailed`, `--depth`, `--max-keys`, `-o` / `--output`, `--full`, `--limit-stdout`, `--no-compact`, `-r` / `--report` (`txt` or `json`), `--pretty`.
 
-Supported formats for recognition and detailed inspection: **Parquet**; **JSON**; **JSONL** (also `.ndjson`); **CSV** (comma-separated), **TSV** (tab-separated), **SSV** (semicolon-separated), and **PSV** (pipe-separated). For JSON structure, `--depth` / `--max-keys` apply (`--max-keys 0` means unlimited keys within the selected depth). A mismatched or missing extension may produce a warning when a format is detected. Content that cannot be confidently recognized is reported as `unknown`.
+## Diff — file diffing
+
+Compare two datasets:
+
+```bash
+xulu diff yesterday.csv today.csv
+xulu diff baseline.json result.json -o report.txt
+xulu diff notes.txt notes.copy.txt -A myers
+xulu diff a.parquet b.parquet -r json --pretty
+```
+
+Useful flags: `-A` / `--algorithm` (`positional` or `myers`), `-o` / `--output`, `--full`, `--max-differences`, `--limit-stdout`, `-r` / `--report`, `--pretty`, `--color`.
+
+Exit code is non-zero when differences are found — suitable for CI.
 
 ## Updating
 
-If `xulu` lives in a user-writable location (the default `~/.local/bin` from `install.sh`), update in place:
-
 ```bash
-xulu update          # prompt, then download and install the latest release
-xulu update -y       # install without prompting
-xulu update --check  # only report whether an update is available
+xulu update          # prompt, then install latest
+xulu update -y       # no prompt
+xulu update --check  # report only
 ```
 
-`update` shows the current and latest versions, asks for confirmation (`[Y/n]`; Enter or `y` installs), verifies the published SHA-256 checksum, then replaces the binary. Use `-y` / `--yes` to skip the prompt (for scripts). It does not use sudo. Manual installs should also use `~/.local/bin` so `xulu update` can replace the binary without elevated permissions. If the binary is in a system path (for example `/usr/local/bin`), reinstall with `install.sh` into `~/.local/bin` instead.
+Updates verify the published SHA-256 checksum, then replace the binary in place.
 
-## Roadmap
+## License and terms
 
-- More inspect formats and richer delimited-text details
-- Tools for validation, profiling, diff, and conversion
+- **[TERMS.md](./TERMS.md)** — Terms of Use (proprietary license, Swiss governing law, liability exclusions). **Read this before use.**
+- **[LICENSE](./LICENSE)** — short proprietary notice pointing at TERMS.md
+
+The CLI is a **local analysis and reporting tool**: it reads your files and writes reports; it does not modify the input files being inspected or diffed as part of normal operation.
+
+## Keywords
+
+file inspection · file diffing · file validation (coming soon) · parquet schema · csv diff · json diff · parquet diff · structured data CLI · local data tooling · data file comparison
