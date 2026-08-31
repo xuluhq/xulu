@@ -1,10 +1,17 @@
 Proprietary software. All rights reserved.
 
-This repository distributes the Xulu CLI as pre-built binaries and related
+Copyright (c) 2026 Kadir Karadavut.
+Xulu is a product/domain name only and is not a registered company.
+
+This notice covers Xulu CLI 0.2.7 pre-built binaries and related
 documentation. Source code is not published under an open-source license.
 
-Use of the Software is governed by the Terms of Use in TERMS.md in this
-repository. By downloading, installing, or using the Software, you agree to
+Use of the Software is governed by the Terms of Use (`xulu legal terms`, or
+TERMS.md). By downloading, installing, or using the Software, you agree to
 those Terms.
 
-Copyright (c) 2026 Xulu.
+The Software is currently beta. Features, availability, and pricing may change;
+capabilities that are free today may later require payment or separate terms.
+
+Contact: support@xulu.dev
+Effective date: 2026-08-29

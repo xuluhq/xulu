@@ -1,8 +1,10 @@
 # Xulu
 
-**Local CLI for file inspection, file diffing, and (soon) file validation** of structured data — CSV, JSON, JSONL, Parquet, and plain text.
+**Local CLI for file inspection, structural data diff, and (soon) file validation.**
 
-Xulu helps you understand and compare data files **on your machine**: detect formats, inspect schemas and metadata, and diff two datasets with CI-friendly exit codes. No account required for inspect and diff today.
+**Website:** [Xulu — local CLI for file inspection and structural data diff](https://xulu.dev)
+
+Xulu helps you understand and compare files **on your machine**. **`xulu inspect`** reports filesystem basics for **any readable file** (size, symlink, read-only, hidden, timestamps) and adds format detection plus schemas for CSV, JSON, JSONL, Parquet, and plain text. **`xulu diff`** compares those structured formats with CI-friendly exit codes. No account required for inspect and diff today.
 
 This repository holds **releases, the install script, and documentation links**. Source code is developed privately. The Software is **proprietary** — see [TERMS.md](./TERMS.md) and [LICENSE](./LICENSE).
 
@@ -10,7 +12,7 @@ This repository holds **releases, the install script, and documentation links**.
 
 | Command | Purpose |
 |---------|---------|
-| [`xulu inspect`](#inspect--file-inspection) | **File inspection** — format detection, schemas, metadata, and structural summaries |
+| [`xulu inspect`](#inspect--file-inspection) | **File inspection** — basics for any file; format detection, schemas, and structural summaries for known types |
 | [`xulu diff`](#diff--file-diffing) | **File diffing** — compare two files (CSV, JSON, Parquet, text) with clear reports |
 | `xulu update` | Update the CLI from GitHub Releases (checksum-verified) |
 | `xulu changelog` | Show release notes |
@@ -19,18 +21,41 @@ This repository holds **releases, the install script, and documentation links**.
 
 ### Formats
 
-- **Parquet** — schema and layout inspection; row-level diff
-- **JSON** / **JSONL** (NDJSON) — structure inspection; structural / record diff
-- **Delimited text** — CSV, TSV, SSV (semicolon), PSV (pipe), and related layouts
-- **Plain text** — line-oriented inspection and diff
+**Inspect — every readable file**
 
-Basic filesystem metadata (path, size, timestamps) works for any readable file. Unrecognized content is reported as `unknown`.
+- Path, size, size on disk (when available), symlink, hidden, read-only, timestamps
+- Unrecognized content is labeled `unknown`; those basics still print
+
+**Inspect — format detection and schemas** (`--detailed` for rich structure)
+
+- **Parquet** — schema and layout
+- **JSON** / **JSONL** (NDJSON) — structure summaries
+- **Delimited text** — CSV, TSV, SSV (semicolon), PSV (pipe), and related layouts
+- **Plain text** — line-oriented metadata
+
+**Diff — structured formats**
+
+- Parquet (row-level), JSON / JSONL, delimited text, plain text
 
 ## Links
 
-- [GitHub Releases](https://github.com/xuluhq/xulu/releases) — binaries + SHA-256 checksums
+- [Xulu marketing site](https://xulu.dev) — product overview, install, and use-case pages (Parquet schema, CSV diff, JSON diff)
+- [Xulu CLI documentation](https://docs.xulu.dev) — getting started, commands, guides, changelog
+- [Getting started with the Xulu CLI](https://docs.xulu.dev/getting-started/) — install and first inspect/diff
+- [GitHub Releases](https://github.com/xuluhq/xulu/releases) — Linux x86_64 binaries + SHA-256 checksums
 - [Terms of Use](./TERMS.md) — license and liability for the CLI binary
-- Docs and marketing sites will link here once deployed (getting started, command reference, changelog)
+- Assistant-oriented map: [Xulu docs llms.txt](https://docs.xulu.dev/llms.txt)
+
+### Common tasks
+
+| Task | Page |
+|------|------|
+| Parquet schema CLI | [Xulu Parquet schema guide](https://docs.xulu.dev/guides/parquet-schema/) · [marketing page](https://xulu.dev/parquet-schema) |
+| CSV diff CLI | [Xulu CSV diff guide](https://docs.xulu.dev/guides/csv-diff/) · [marketing page](https://xulu.dev/csv-diff) |
+| JSON diff CLI | [Xulu JSON diff guide](https://docs.xulu.dev/guides/json-diff/) · [marketing page](https://xulu.dev/json-diff) |
+| File inspection | [Xulu file inspection guide](https://docs.xulu.dev/guides/file-inspection/) · [marketing page](https://xulu.dev/file-inspection) |
+| File diff | [Xulu file diff guide](https://docs.xulu.dev/guides/file-diff/) · [marketing page](https://xulu.dev/file-diff) |
+| File validation (soon) | [Xulu file validation guide](https://docs.xulu.dev/guides/file-validation/) · [marketing page](https://xulu.dev/file-validation) |
 
 ## Installation
 
@@ -95,16 +120,19 @@ Use `~/.local/bin` so later `xulu update` can replace the binary without sudo.
 
 ## Inspect — file inspection
 
-Detect format and print schema / metadata:
+**Any readable file** gets source/storage basics. Known structured formats also get detection and optional schemas:
 
 ```bash
+xulu inspect any-file.bin
 xulu inspect results.parquet
 xulu inspect export.csv --detailed
 xulu inspect data.json --detailed -r json --pretty
 xulu inspect big.jsonl --detailed -o report.txt
 ```
 
-Useful flags: `--detailed`, `--depth`, `--max-keys`, `-o` / `--output`, `--full`, `--limit-stdout`, `--no-compact`, `-r` / `--report` (`txt` or `json`), `--pretty`.
+Useful flags: `--detailed`, `--depth`, `--max-keys`, `-o` / `--output`, `--full`, `--limit-stdout`, `--no-compact`, `-r` / `--report` (`txt` or `json`), `--pretty` (JSON reports only).
+
+Full reference: [xulu inspect command documentation](https://docs.xulu.dev/commands/inspect/).
 
 ## Diff — file diffing
 
@@ -117,9 +145,11 @@ xulu diff notes.txt notes.copy.txt -A myers
 xulu diff a.parquet b.parquet -r json --pretty
 ```
 
-Useful flags: `-A` / `--algorithm` (`positional` or `myers`), `-o` / `--output`, `--full`, `--max-differences`, `--limit-stdout`, `-r` / `--report`, `--pretty`, `--color`.
+Useful flags: `-A` / `--algorithm` (`positional` or `myers`), `-o` / `--output`, `--full`, `--max-differences`, `--limit-stdout`, `-r` / `--report`, `--pretty` (JSON reports only), `--color`.
 
 Exit code is non-zero when differences are found — suitable for CI.
+
+Full reference: [xulu diff command documentation](https://docs.xulu.dev/commands/diff/).
 
 ## Updating
 
@@ -140,4 +170,4 @@ The CLI is a **local analysis and reporting tool**: it reads your files and writ
 
 ## Keywords
 
-file inspection · file diffing · file validation (coming soon) · parquet schema · csv diff · json diff · parquet diff · structured data CLI · local data tooling · data file comparison
+xulu cli · file inspection · inspect any file · file size metadata · file diffing · structural data diff · parquet schema cli · csv diff cli · json diff cli · parquet diff · structured data cli · local data tooling · data file comparison
