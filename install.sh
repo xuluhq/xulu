@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the Xulu CLI (Linux x86_64) from GitHub Releases.
+# Install the Xulu CLI (Linux) from GitHub Releases.
 #
 #   curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
 #
@@ -8,8 +8,12 @@
 # or open a new terminal (if you answered y to the PATH prompt).
 #
 # Optional:
-#   XULU_VERSION=v0.1.0 …     # pin a release tag
-#   INSTALL_DIR=~/.local/bin … # custom install dir
+#   XULU_VERSION=v0.1.0 …              # pin a release tag
+#   XULU_PLATFORM=linux-aarch64 …      # override auto-detect (linux-x86_64 | linux-aarch64)
+#   INSTALL_DIR=~/.local/bin …         # custom install dir
+#
+# Override platform when piping:
+#   curl -fsSL …/install.sh | bash -s -- --platform linux-aarch64
 #
 # `curl | bash` runs in a child process and cannot change your interactive shell's
 # PATH. That is why activation happens after install (source env.sh or a new terminal).
@@ -17,9 +21,9 @@
 set -euo pipefail
 
 REPO="xuluhq/xulu"
-ASSET="xulu-linux-x86_64"
 INSTALL_DIR="${INSTALL_DIR:-${HOME}/.local/bin}"
 VERSION="${XULU_VERSION:-}"
+PLATFORM="${XULU_PLATFORM:-}"
 PATH_LINE="export PATH=\"${INSTALL_DIR}:\$PATH\""
 ENV_FILE="${HOME}/.local/share/xulu/env.sh"
 
@@ -191,24 +195,104 @@ maybe_configure_path() {
   fi
 }
 
+usage() {
+  cat <<EOF >&2
+Usage: install.sh [--platform linux-x86_64|linux-aarch64]
+
+Auto-detects Linux x86_64 or arm64. Override with --platform or XULU_PLATFORM.
+EOF
+}
+
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --platform)
+        if [[ $# -lt 2 ]]; then
+          echo "error: --platform requires a value (linux-x86_64 or linux-aarch64)" >&2
+          exit 1
+        fi
+        PLATFORM="$2"
+        shift 2
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        echo "error: unknown argument: $1" >&2
+        usage
+        exit 1
+        ;;
+    esac
+  done
+}
+
+normalize_platform() {
+  case "${1,,}" in
+    linux-x86_64|x86_64|amd64|x64) printf '%s' "linux-x86_64" ;;
+    linux-aarch64|aarch64|arm64) printf '%s' "linux-aarch64" ;;
+    *)
+      echo "error: unsupported platform '${1}' (use linux-x86_64 or linux-aarch64)" >&2
+      exit 1
+      ;;
+  esac
+}
+
+asset_for_platform() {
+  case "$1" in
+    linux-x86_64) printf '%s' "xulu-linux-x86_64" ;;
+    linux-aarch64) printf '%s' "xulu-linux-aarch64" ;;
+    *)
+      echo "error: internal error: unknown platform '$1'" >&2
+      exit 1
+      ;;
+  esac
+}
+
+platform_label() {
+  case "$1" in
+    linux-x86_64) printf '%s' "Linux x86_64" ;;
+    linux-aarch64) printf '%s' "Linux arm64" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+detect_platform() {
+  local os arch
+  os="$(uname -s)"
+  arch="$(uname -m)"
+
+  if [[ "${os}" != "Linux" ]]; then
+    echo "error: this installer currently supports Linux only (got ${os})" >&2
+    exit 1
+  fi
+
+  case "${arch}" in
+    x86_64|amd64) printf '%s' "linux-x86_64" ;;
+    aarch64|arm64) printf '%s' "linux-aarch64" ;;
+    *)
+      echo "error: unsupported Linux architecture '${arch}' (supported: x86_64, arm64)" >&2
+      exit 1
+      ;;
+  esac
+}
+
+parse_args "$@"
+
 need_cmd curl
 need_cmd uname
 need_cmd mktemp
 
-os="$(uname -s)"
-arch="$(uname -m)"
-
-if [[ "${os}" != "Linux" ]]; then
-  echo "error: this installer currently supports Linux only (got ${os})" >&2
-  exit 1
+if [[ -n "${PLATFORM}" ]]; then
+  PLATFORM="$(normalize_platform "${PLATFORM}")"
+else
+  PLATFORM="$(detect_platform)"
 fi
 
-if [[ "${arch}" != "x86_64" && "${arch}" != "amd64" ]]; then
-  echo "error: this installer currently supports x86_64 only (got ${arch})" >&2
-  exit 1
-fi
+ASSET="$(asset_for_platform "${PLATFORM}")"
+PLATFORM_LABEL="$(platform_label "${PLATFORM}")"
 
-_out '\n%s── Xulu installer%s  (Linux x86_64 · bash & zsh)\n\n' "${BOLD}" "${RESET}"
+_out '\n%s── Xulu installer%s  (%s · bash & zsh)\n\n' "${BOLD}" "${RESET}" "${PLATFORM_LABEL}"
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "${tmpdir}"' EXIT
