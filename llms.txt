@@ -13,6 +13,8 @@
 
 ## Install
 
+Linux x86_64 and arm64 (script auto-detects). macOS, Windows, and distro packages coming soon.
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
 ```

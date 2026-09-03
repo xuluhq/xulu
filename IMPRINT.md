@@ -1,6 +1,6 @@
 # Legal notice (Impressum)
 
-**Effective date:** 2026-08-29
+**Effective date:** 2026-09-03
 
 ## Publisher
 

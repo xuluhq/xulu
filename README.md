@@ -42,7 +42,7 @@ This repository holds **releases, the install script, and documentation links**.
 - [Xulu marketing site](https://xulu.dev) — product overview, install, and use-case pages (Parquet schema, CSV diff, JSON diff)
 - [Xulu CLI documentation](https://docs.xulu.dev) — getting started, commands, guides, changelog
 - [Getting started with the Xulu CLI](https://docs.xulu.dev/getting-started/) — install and first inspect/diff
-- [GitHub Releases](https://github.com/xuluhq/xulu/releases) — Linux x86_64 binaries + SHA-256 checksums
+- [GitHub Releases](https://github.com/xuluhq/xulu/releases) — Linux x86_64 and arm64 binaries + SHA-256 checksums
 - [Terms of Use](./TERMS.md) — license and liability for the CLI binary
 - Assistant-oriented map: [Xulu docs llms.txt](https://docs.xulu.dev/llms.txt)
 
@@ -59,11 +59,10 @@ This repository holds **releases, the install script, and documentation links**.
 
 ## Installation
 
-**Linux x86_64** today. By downloading or using the CLI, you agree to the [Terms of Use](./TERMS.md).
+**Linux x86_64** and **Linux arm64** today (install script auto-detects). By downloading or using the CLI, you agree to the [Terms of Use](./TERMS.md).
 
 ### Other platforms (coming soon)
 
-- Other Linux architectures (e.g. **arm64**)
 - Distro packages (e.g. **Fedora** / RPM-style, and similar for other distributions)
 - **macOS** and **Windows** builds
 
@@ -73,7 +72,7 @@ This repository holds **releases, the install script, and documentation links**.
 curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
 ```
 
-Works with **bash** and **zsh**.
+Works with **bash** and **zsh**. Auto-detects Linux x86_64 or arm64 (override with `--platform` / `XULU_PLATFORM`).
 
 - Installs into `~/.local/bin/xulu` (no sudo)
 - Offers to update `~/.bashrc` or `~/.zshrc` for new terminals
@@ -94,14 +93,15 @@ xulu --help
 Pin a version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.2.6 bash
+curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | XULU_VERSION=v0.2.9 bash
 ```
 
 ### Manual install
 
-1. Download `xulu-linux-x86_64` and `xulu-linux-x86_64.sha256` from the latest
-   [GitHub release](https://github.com/xuluhq/xulu/releases/latest).
-2. Verify and install:
+1. Download the matching asset and checksum from the latest
+   [GitHub release](https://github.com/xuluhq/xulu/releases/latest):
+   `xulu-linux-x86_64` / `xulu-linux-aarch64` (and the `.sha256` file).
+2. Verify and install (example for x86_64; use `xulu-linux-aarch64` on arm64):
 
 ```bash
 sha256sum -c xulu-linux-x86_64.sha256
@@ -141,13 +141,13 @@ Compare two datasets:
 ```bash
 xulu diff yesterday.csv today.csv
 xulu diff baseline.json result.json -o report.txt
-xulu diff notes.txt notes.copy.txt -A myers
+xulu diff notes.txt notes.copy.txt -a myers
 xulu diff a.parquet b.parquet -r json --pretty
 ```
 
-Useful flags: `-A` / `--algorithm` (`positional` or `myers`), `-o` / `--output`, `--full`, `--max-differences`, `--limit-stdout`, `-r` / `--report`, `--pretty` (JSON reports only), `--color`.
+Useful flags: `-a` / `--algorithm` (`positional` or `myers`), `-o` / `--output`, `--full`, `--max-differences`, `--limit-stdout`, `-r` / `--report`, `--pretty` (JSON reports only), `--color`.
 
-Exit code is non-zero when differences are found — suitable for CI.
+Exit code is non-zero when differences are found — suitable for CI. Both sides must use the same format family.
 
 Full reference: [xulu diff command documentation](https://docs.xulu.dev/commands/diff/).
 
@@ -159,7 +159,7 @@ xulu update -y       # no prompt
 xulu update --check  # report only
 ```
 
-Updates verify the published SHA-256 checksum, then replace the binary in place.
+Updates download the matching Linux asset (x86_64 or arm64), verify the published SHA-256 checksum, then replace the binary in place.
 
 ## License and terms
 
