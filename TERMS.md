@@ -1,7 +1,7 @@
-# Xulu CLI — Terms of Use
+# Xulu CLI Terms of Use
 
-**CLI version:** 0.2.9  
-**Effective date:** 2026-09-03
+**CLI version:** 0.2.11  
+**Effective date:** 2026-09-04
 
 These Terms apply to the Xulu command-line software (“Software”) distributed as pre-built binaries from [xuluhq/xulu](https://github.com/xuluhq/xulu) and other official channels. By downloading, installing, or using the Software, you agree to these Terms.
 

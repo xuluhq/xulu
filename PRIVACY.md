@@ -1,6 +1,6 @@
 # Privacy notice
 
-**Effective date:** 2026-09-03
+**Effective date:** 2026-09-04
 
 This notice describes how we handle personal data for the Xulu websites (marketing site and documentation) and the Xulu CLI.
 

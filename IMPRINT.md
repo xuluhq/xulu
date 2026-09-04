@@ -1,6 +1,6 @@
 # Legal notice (Impressum)
 
-**Effective date:** 2026-09-03
+**Effective date:** 2026-09-04
 
 ## Publisher
 
@@ -8,7 +8,7 @@
 Private individual  
 Mellingen, Canton of Aargau, Switzerland
 
-**Product / brand:** Xulu ([xulu.dev](https://xulu.dev))  
+**Product / brand:** Xulu ([xulu.dev](https://xulu.dev)). Search and product category: Xulu Data Quality.  
 Xulu is **not** a registered company, sole proprietorship (Einzelfirma), or other legal entity at this time.
 
 ## Contact
