@@ -169,7 +169,7 @@ try {
         $expected = ($sumLine -split "\s+")[0].ToLowerInvariant()
         $actual = (Get-FileHash -Algorithm SHA256 -Path $binPath).Hash.ToLowerInvariant()
         if ($expected -ne $actual) {
-            throw "Checksum mismatch for $Asset: expected $expected, got $actual"
+            throw "Checksum mismatch for ${Asset}: expected ${expected}, got ${actual}"
         }
         Write-Info "Checksum OK."
     } catch {
