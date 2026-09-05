@@ -49,13 +49,18 @@ function Resolve-Platform {
         throw "This installer supports Windows only (got OS='$env:OS')."
     }
 
-    switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
-        "X64" { return "windows-x86_64" }
-        "Arm64" {
+    # Prefer env vars: RuntimeInformation.OSArchitecture is empty on some Windows PowerShell 5.1 hosts.
+    $arch = $env:PROCESSOR_ARCHITECTURE
+    if ($arch -eq "x86" -and $env:PROCESSOR_ARCHITEW6432) {
+        $arch = $env:PROCESSOR_ARCHITEW6432
+    }
+    switch ($arch) {
+        "AMD64" { return "windows-x86_64" }
+        "ARM64" {
             throw "Windows ARM64 binaries are not published yet (planned). x86_64 is supported."
         }
         default {
-            throw "Unsupported Windows architecture '$(([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture))'."
+            throw "Unsupported Windows architecture '$arch'."
         }
     }
 }
