@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the Xulu CLI (Linux / macOS) from GitHub Releases.
+# Install the Xulu CLI (Linux / macOS / Windows via Git Bash) from GitHub Releases.
 #
 #   curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
 #
@@ -16,8 +16,11 @@
 #   curl -fsSL …/install.sh | bash -s -- --platform darwin-aarch64
 #
 # Supported platforms:
-#   linux-x86_64 | linux-aarch64 | darwin-aarch64
-#   (macOS Intel / darwin-x86_64 planned)
+#   linux-x86_64 | linux-aarch64 | darwin-aarch64 | windows-x86_64
+#   (macOS Intel / Windows ARM64 planned)
+#
+# On Windows, Git Bash / MSYS detect as windows-x86_64 and install xulu.exe.
+# Native PowerShell users can use install.ps1 instead.
 #
 # `curl | bash` runs in a child process and cannot change your interactive shell's
 # PATH. That is why activation happens after install (source env.sh or a new terminal).
@@ -201,10 +204,11 @@ maybe_configure_path() {
 
 usage() {
   cat <<EOF >&2
-Usage: install.sh [--platform linux-x86_64|linux-aarch64|darwin-aarch64]
+Usage: install.sh [--platform linux-x86_64|linux-aarch64|darwin-aarch64|windows-x86_64]
 
-Auto-detects Linux (x86_64 / arm64) or macOS Apple Silicon. Override with --platform or XULU_PLATFORM.
-macOS Intel is not available yet.
+Auto-detects Linux, macOS Apple Silicon, or Windows (Git Bash / MSYS).
+Override with --platform or XULU_PLATFORM.
+macOS Intel and Windows ARM64 are not available yet.
 EOF
 }
 
@@ -213,7 +217,7 @@ parse_args() {
     case "$1" in
       --platform)
         if [[ $# -lt 2 ]]; then
-          echo "error: --platform requires a value (linux-x86_64, linux-aarch64, or darwin-aarch64)" >&2
+          echo "error: --platform requires a value (linux-x86_64, linux-aarch64, darwin-aarch64, or windows-x86_64)" >&2
           exit 1
         fi
         PLATFORM="$2"
@@ -240,12 +244,17 @@ normalize_platform() {
     linux-x86_64|x86_64|amd64|x64) printf '%s' "linux-x86_64" ;;
     linux-aarch64|aarch64|arm64) printf '%s' "linux-aarch64" ;;
     darwin-aarch64|macos-aarch64|macos-arm64|darwin-arm64) printf '%s' "darwin-aarch64" ;;
+    windows-x86_64|windows-amd64|win-x64|mingw64) printf '%s' "windows-x86_64" ;;
     darwin-x86_64|macos-x86_64|macos-amd64|darwin-amd64)
       echo "error: macOS Intel binaries are not published yet (planned). Apple Silicon is supported via darwin-aarch64." >&2
       exit 1
       ;;
+    windows-aarch64|windows-arm64|win-arm64)
+      echo "error: Windows ARM64 binaries are not published yet (planned). x86_64 is supported via windows-x86_64." >&2
+      exit 1
+      ;;
     *)
-      echo "error: unsupported platform '${1}' (use linux-x86_64, linux-aarch64, or darwin-aarch64)" >&2
+      echo "error: unsupported platform '${1}' (use linux-x86_64, linux-aarch64, darwin-aarch64, or windows-x86_64)" >&2
       exit 1
       ;;
   esac
@@ -256,10 +265,19 @@ asset_for_platform() {
     linux-x86_64) printf '%s' "xulu-linux-x86_64" ;;
     linux-aarch64) printf '%s' "xulu-linux-aarch64" ;;
     darwin-aarch64) printf '%s' "xulu-darwin-aarch64" ;;
+    windows-x86_64) printf '%s' "xulu-windows-x86_64.exe" ;;
     *)
       echo "error: internal error: unknown platform '$1'" >&2
       exit 1
       ;;
+  esac
+}
+
+# Installed binary name in INSTALL_DIR (Windows needs .exe).
+binary_name_for_platform() {
+  case "$1" in
+    windows-*) printf '%s' "xulu.exe" ;;
+    *) printf '%s' "xulu" ;;
   esac
 }
 
@@ -268,6 +286,7 @@ platform_label() {
     linux-x86_64) printf '%s' "Linux x86_64" ;;
     linux-aarch64) printf '%s' "Linux arm64" ;;
     darwin-aarch64) printf '%s' "macOS Apple Silicon" ;;
+    windows-x86_64) printf '%s' "Windows x86_64" ;;
     *) printf '%s' "$1" ;;
   esac
 }
@@ -301,8 +320,22 @@ detect_platform() {
           ;;
       esac
       ;;
+    MINGW*|MSYS*|CYGWIN*)
+      # Git Bash / MSYS2 / Cygwin: native Windows PE binary, not WSL Linux.
+      case "${arch}" in
+        x86_64|amd64) printf '%s' "windows-x86_64" ;;
+        aarch64|arm64)
+          echo "error: Windows ARM64 binaries are not published yet (planned). x86_64 is supported." >&2
+          exit 1
+          ;;
+        *)
+          echo "error: unsupported Windows architecture '${arch}' (x86_64 is supported)" >&2
+          exit 1
+          ;;
+      esac
+      ;;
     *)
-      echo "error: this installer supports Linux and macOS Apple Silicon only (got ${os})" >&2
+      echo "error: this installer supports Linux, macOS Apple Silicon, and Windows (Git Bash) only (got ${os})" >&2
       exit 1
       ;;
   esac
@@ -332,6 +365,7 @@ else
 fi
 
 ASSET="$(asset_for_platform "${PLATFORM}")"
+BIN_NAME="$(binary_name_for_platform "${PLATFORM}")"
 PLATFORM_LABEL="$(platform_label "${PLATFORM}")"
 
 _out '\n%s── Xulu installer%s  (%s · bash & zsh)\n\n' "${BOLD}" "${RESET}" "${PLATFORM_LABEL}"
@@ -384,11 +418,11 @@ fi
 chmod +x "${tmpdir}/${ASSET}"
 
 mkdir -p "${INSTALL_DIR}"
-mv "${tmpdir}/${ASSET}" "${INSTALL_DIR}/xulu"
+mv "${tmpdir}/${ASSET}" "${INSTALL_DIR}/${BIN_NAME}"
 
-_out 'Installed %s\n' "${INSTALL_DIR}/xulu"
+_out 'Installed %s\n' "${INSTALL_DIR}/${BIN_NAME}"
 _out 'Release:   %s\n' "${tag}"
-if reported="$("${INSTALL_DIR}/xulu" --version 2>/dev/null)"; then
+if reported="$("${INSTALL_DIR}/${BIN_NAME}" --version 2>/dev/null)"; then
   _out 'Binary:    %s\n' "${reported}"
 fi
 
