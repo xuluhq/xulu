@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the Xulu CLI (Linux) from GitHub Releases.
+# Install the Xulu CLI (Linux / macOS) from GitHub Releases.
 #
 #   curl -fsSL https://raw.githubusercontent.com/xuluhq/xulu/master/install.sh | bash
 #
@@ -9,11 +9,15 @@
 #
 # Optional:
 #   XULU_VERSION=v0.1.0 …              # pin a release tag
-#   XULU_PLATFORM=linux-aarch64 …      # override auto-detect (linux-x86_64 | linux-aarch64)
+#   XULU_PLATFORM=linux-aarch64 …      # override auto-detect
 #   INSTALL_DIR=~/.local/bin …         # custom install dir
 #
 # Override platform when piping:
-#   curl -fsSL …/install.sh | bash -s -- --platform linux-aarch64
+#   curl -fsSL …/install.sh | bash -s -- --platform darwin-aarch64
+#
+# Supported platforms:
+#   linux-x86_64 | linux-aarch64 | darwin-aarch64
+#   (macOS Intel / darwin-x86_64 planned)
 #
 # `curl | bash` runs in a child process and cannot change your interactive shell's
 # PATH. That is why activation happens after install (source env.sh or a new terminal).
@@ -197,9 +201,10 @@ maybe_configure_path() {
 
 usage() {
   cat <<EOF >&2
-Usage: install.sh [--platform linux-x86_64|linux-aarch64]
+Usage: install.sh [--platform linux-x86_64|linux-aarch64|darwin-aarch64]
 
-Auto-detects Linux x86_64 or arm64. Override with --platform or XULU_PLATFORM.
+Auto-detects Linux (x86_64 / arm64) or macOS Apple Silicon. Override with --platform or XULU_PLATFORM.
+macOS Intel is not available yet.
 EOF
 }
 
@@ -208,7 +213,7 @@ parse_args() {
     case "$1" in
       --platform)
         if [[ $# -lt 2 ]]; then
-          echo "error: --platform requires a value (linux-x86_64 or linux-aarch64)" >&2
+          echo "error: --platform requires a value (linux-x86_64, linux-aarch64, or darwin-aarch64)" >&2
           exit 1
         fi
         PLATFORM="$2"
@@ -228,11 +233,19 @@ parse_args() {
 }
 
 normalize_platform() {
-  case "${1,,}" in
+  # tr instead of ${var,,} so macOS system bash 3.2 works.
+  local p
+  p="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+  case "${p}" in
     linux-x86_64|x86_64|amd64|x64) printf '%s' "linux-x86_64" ;;
     linux-aarch64|aarch64|arm64) printf '%s' "linux-aarch64" ;;
+    darwin-aarch64|macos-aarch64|macos-arm64|darwin-arm64) printf '%s' "darwin-aarch64" ;;
+    darwin-x86_64|macos-x86_64|macos-amd64|darwin-amd64)
+      echo "error: macOS Intel binaries are not published yet (planned). Apple Silicon is supported via darwin-aarch64." >&2
+      exit 1
+      ;;
     *)
-      echo "error: unsupported platform '${1}' (use linux-x86_64 or linux-aarch64)" >&2
+      echo "error: unsupported platform '${1}' (use linux-x86_64, linux-aarch64, or darwin-aarch64)" >&2
       exit 1
       ;;
   esac
@@ -242,6 +255,7 @@ asset_for_platform() {
   case "$1" in
     linux-x86_64) printf '%s' "xulu-linux-x86_64" ;;
     linux-aarch64) printf '%s' "xulu-linux-aarch64" ;;
+    darwin-aarch64) printf '%s' "xulu-darwin-aarch64" ;;
     *)
       echo "error: internal error: unknown platform '$1'" >&2
       exit 1
@@ -253,6 +267,7 @@ platform_label() {
   case "$1" in
     linux-x86_64) printf '%s' "Linux x86_64" ;;
     linux-aarch64) printf '%s' "Linux arm64" ;;
+    darwin-aarch64) printf '%s' "macOS Apple Silicon" ;;
     *) printf '%s' "$1" ;;
   esac
 }
@@ -262,19 +277,46 @@ detect_platform() {
   os="$(uname -s)"
   arch="$(uname -m)"
 
-  if [[ "${os}" != "Linux" ]]; then
-    echo "error: this installer currently supports Linux only (got ${os})" >&2
-    exit 1
-  fi
-
-  case "${arch}" in
-    x86_64|amd64) printf '%s' "linux-x86_64" ;;
-    aarch64|arm64) printf '%s' "linux-aarch64" ;;
+  case "${os}" in
+    Linux)
+      case "${arch}" in
+        x86_64|amd64) printf '%s' "linux-x86_64" ;;
+        aarch64|arm64) printf '%s' "linux-aarch64" ;;
+        *)
+          echo "error: unsupported Linux architecture '${arch}' (supported: x86_64, arm64)" >&2
+          exit 1
+          ;;
+      esac
+      ;;
+    Darwin)
+      case "${arch}" in
+        arm64) printf '%s' "darwin-aarch64" ;;
+        x86_64|amd64)
+          echo "error: macOS Intel binaries are not published yet (planned). Apple Silicon (arm64) is supported." >&2
+          exit 1
+          ;;
+        *)
+          echo "error: unsupported macOS architecture '${arch}' (Apple Silicon arm64 is supported)" >&2
+          exit 1
+          ;;
+      esac
+      ;;
     *)
-      echo "error: unsupported Linux architecture '${arch}' (supported: x86_64, arm64)" >&2
+      echo "error: this installer supports Linux and macOS Apple Silicon only (got ${os})" >&2
       exit 1
       ;;
   esac
+}
+
+verify_sha256() {
+  local asset="$1"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum -c "${asset}.sha256"
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 -c "${asset}.sha256"
+  else
+    echo "warning: neither sha256sum nor shasum found; skipped checksum verification" >&2
+  fi
 }
 
 parse_args "$@"
@@ -333,11 +375,7 @@ sum_url="${url}.sha256"
 if curl -fsSL "${sum_url}" -o "${tmpdir}/${ASSET}.sha256"; then
   (
     cd "${tmpdir}"
-    if command -v sha256sum >/dev/null 2>&1; then
-      sha256sum -c "${ASSET}.sha256"
-    else
-      echo "warning: sha256sum not found; skipped checksum verification" >&2
-    fi
+    verify_sha256 "${ASSET}"
   )
 else
   echo "warning: could not download ${ASSET}.sha256; skipped checksum verification" >&2
