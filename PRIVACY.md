@@ -8,7 +8,7 @@ Publisher: **Kadir Karadavut** (private individual, Mellingen, Canton of Aargau,
 
 ## 1. Xulu CLI (local software)
 
-The published CLI is designed to run on **your machine**. For current inspect, diff, validate, and generate use, input files you point it at are processed locally by default. Those file contents are **not** uploaded to the Publisher as part of normal inspect/diff/validate/generate operation.
+The published CLI is designed to run on **your machine**. For current inspect, diff, validate, profile, and generate use, input files you point it at are processed locally by default. Those file contents are **not** uploaded to the Publisher as part of normal inspect/diff/validate/profile/generate operation.
 
 `xulu update` / `xulu changelog` may contact **GitHub** to fetch release metadata and binaries. That traffic is subject to GitHub’s own terms and privacy policy.
 

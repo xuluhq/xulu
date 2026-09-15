@@ -1,6 +1,6 @@
 # Xulu CLI Terms of Use
 
-**CLI version:** 0.4.0  
+**CLI version:** 0.4.1  
 **Effective date:** 2026-09-14
 
 These Terms apply to the Xulu command-line software (“Software”) distributed as pre-built binaries from [xuluhq/xulu](https://github.com/xuluhq/xulu) and other official channels. By downloading, installing, or using the Software, you agree to these Terms.
@@ -19,11 +19,11 @@ The Software is **proprietary** and currently offered as a **beta**. Features, a
 
 Subject to these Terms, the Publisher grants you a limited, non-exclusive, non-transferable, revocable license to install and use the Software on systems you control or are authorized to use, for personal or internal purposes.
 
-Some capabilities (for example inspect, diff, validate, and generate) are currently available without charge. **That is not a promise they will stay free.** Future features, editions, or continued use of existing features may require payment or separate terms, which will be described when they apply.
+Some capabilities (for example inspect, diff, validate, profile, and generate) are currently available without charge. **That is not a promise they will stay free.** Future features, editions, or continued use of existing features may require payment or separate terms, which will be described when they apply.
 
 ## 2. Nature of the Software
 
-The Software is intended as a **local analysis and reporting tool**. In current versions, commands such as inspect, diff, validate, and generate are meant to **read** your input files and produce reports or other output (for example on stdout or via `-o` / `--output`) without modifying those input files as part of normal operation.
+The Software is intended as a **local analysis and reporting tool**. In current versions, commands such as inspect, diff, validate, profile, and generate are meant to **read** your input files and produce reports or other output (for example on stdout or via `-o` / `--output`) without modifying those input files as part of normal operation.
 
 Reports, exit codes, and similar results are **informational only**. You remain solely responsible for how you interpret them and for any decisions, scripts, CI gates, or other actions you take based on them. You are responsible for backups and for verifying results before relying on them.
 
@@ -47,7 +47,7 @@ Updates (including via `xulu update`) are subject to these Terms unless differen
 
 ## 6. Local processing
 
-The CLI runs on your machine. For current inspect, diff, validate, and generate use, input files are processed locally by default; you are not required to upload those files to use those commands. Any future hosted or account-based features will be described separately (including privacy information where required).
+The CLI runs on your machine. For current inspect, diff, validate, profile, and generate use, input files are processed locally by default; you are not required to upload those files to use those commands. Any future hosted or account-based features will be described separately (including privacy information where required).
 
 Official websites and download channels may be hosted outside Switzerland (for example in the EU/Germany or via third-party providers such as GitHub). Hosting location alone does not change these Terms.
 
